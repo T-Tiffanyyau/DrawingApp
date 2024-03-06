@@ -20,7 +20,7 @@ The Drawing Activity App is an engaging and intuitive Android application design
 - Customizable Pen Size and Color: SeekBar integration for dynamic pen size adjustments.
 - Persisting Drawings: Ability to save drawings for later access.
 
-(Programming related)
+(Programming related:)
 
 - LiveData Observations: The DrawingScreen fragment observes LiveData from the ViewModel for updates.
 - RecyclerView Integration: MainScreen uses a RecyclerView to list drawings, offering a seamless selection and transition experience.

@@ -1,11 +1,11 @@
 package com.example.drawingactivity
 
 import android.app.AlertDialog
-import android.graphics.Bitmap
 import android.graphics.Color
 import android.widget.Button
 import android.widget.EditText
 import androidx.fragment.app.Fragment
+import com.example.drawingactivity.drawingdata.DrawingViewModel
 
 /**
  * Helper class for showing dialogs
@@ -45,26 +45,6 @@ object Dialogs {
             dialog.dismiss()
         }
 
-        dialog.show()
-    }
-
-    fun showSaveWarningDialog(
-        fragment: Fragment,
-        drawingViewModel: DrawingViewModel,
-        picTitle: String,
-        Bitmap: Bitmap,
-        message: String
-    ) {
-        val builder = AlertDialog.Builder(fragment.activity)
-        builder.setTitle("Warning")
-        builder.setMessage(message)
-        builder.setPositiveButton("Yes") { dialog, which ->
-            drawingViewModel.saveDrawing(picTitle, Bitmap)
-        }
-        builder.setNegativeButton("No") { dialog, which ->
-            // Handle negative button action
-        }
-        val dialog: AlertDialog = builder.create()
         dialog.show()
     }
 }

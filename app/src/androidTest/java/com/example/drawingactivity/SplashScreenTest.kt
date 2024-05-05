@@ -22,16 +22,16 @@ class SplashScreenTestOld {
 //        }
 //    }
 
-    /**
-     * This test checks if the timer is set to switch to the MainScreen after 5 seconds
-     */
-    @Test
-    fun setTimer_switchesToMainScreen() {
-        val scenario = launchFragmentInContainer<SplashScreen>()
-        scenario.onFragment { fragment ->
-            Thread.sleep(5000) // Wait for 5 seconds
-        }
-    }
+//    /**
+//     * This test checks if the timer is set to switch to the MainScreen after 5 seconds
+//     */
+//    @Test
+//    fun setTimer_switchesToMainScreen() {
+//        val scenario = launchFragmentInContainer<SplashScreen>()
+//        scenario.onFragment { fragment ->
+//            Thread.sleep(5000) // Wait for 5 seconds
+//        }
+//    }
 
 }
 class SplashScreenTest {
@@ -39,15 +39,12 @@ class SplashScreenTest {
     @get:Rule
     val composeTestRule = createComposeRule()
 
-    @Composable
     @Test
     fun testSplashScreenUI() {
-        // Launch the SplashScreen composable
         composeTestRule.setContent {
             SplashScreenComposable { true }
         }
 
-        // Check if the Image with content description "Paint Icon" is displayed
         composeTestRule
             .onNodeWithContentDescription("Paint Icon")
             .assertIsDisplayed()

@@ -7,6 +7,7 @@ plugins {
 
     //for room
     id("com.google.devtools.ksp")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -16,12 +17,17 @@ android {
 
     defaultConfig {
         applicationId = "com.example.drawingactivity"
-        minSdk = 33
+        minSdk = 30
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        externalNativeBuild {
+            cmake {
+                cppFlags += ""
+            }
+        }
     }
 
     buildTypes {
@@ -53,6 +59,12 @@ android {
         kotlinCompilerExtensionVersion = "1.5.10"
     }
     buildToolsVersion = "34.0.0"
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.22.1"
+        }
+    }
 }
 
 dependencies {
@@ -71,6 +83,9 @@ dependencies {
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("androidx.navigation:navigation-fragment:2.7.7")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+    implementation("com.google.firebase:firebase-auth:22.3.1")
+    implementation("com.google.firebase:firebase-firestore-ktx:24.11.0")
+    implementation("com.google.firebase:firebase-storage-ktx:20.3.0")
 
     // Espresso dependencies for UI testing
     androidTestImplementation("com.android.support.test:runner:1.0.2")
@@ -92,7 +107,6 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.hamcrest:hamcrest-all:1.3")
     testImplementation ("androidx.arch.core:core-testing:2.1.0")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
 
 
 
@@ -100,6 +114,8 @@ dependencies {
     testImplementation("org.mockito:mockito-core:4.4.0")
     androidTestImplementation("org.mockito:mockito-android:4.4.0")
     testImplementation("org.mockito:mockito-inline:4.4.0")
+    androidTestImplementation ("org.robolectric:robolectric:4.6.1")
+    androidTestImplementation("io.mockk:mockk-android:1.12.0")
 
     //VM + JPC
     implementation("androidx.compose.runtime:runtime-livedata:1.6.1")

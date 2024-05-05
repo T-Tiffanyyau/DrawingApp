@@ -1,8 +1,6 @@
 package com.example.drawingactivity
 
-import android.content.res.Configuration
 import android.graphics.Bitmap
-import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.util.Log
@@ -18,7 +16,9 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.drawingactivity.databinding.FragmentDrawingScreenBinding
+import com.example.drawingactivity.drawingdata.DrawingViewModel
 import kotlinx.coroutines.launch
+import java.nio.ByteBuffer
 import kotlin.math.min
 
 
@@ -32,6 +32,17 @@ class DrawingScreen : Fragment() {
     val binding get() = _binding!!
     val drawingViewModel: DrawingViewModel by activityViewModels()
     private var isDragEnabled = false
+
+    /** C++ functions **/
+
+    init {
+        System.loadLibrary("drawingactivity")
+    }
+
+    external fun InvertColors_Bitmap(buffer: ByteBuffer, width: Int, height: Int)
+    external fun AddNoise_Bitmap(buffer: ByteBuffer, width: Int, height: Int)
+
+    /* End of C++ functions */
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,13 +58,7 @@ class DrawingScreen : Fragment() {
         drawingViewModel.toggleDrag(isDragEnabled)
 
         observeViewModel()  // Observe ViewModel LiveData
-        seekBar()
-        shapeBar()
-        topBar()
-
-        binding.customizeColorButton.setOnClickListener() {
-            Dialogs.showCustomColorDialog(this, drawingViewModel)
-        }
+        UISetup()  // Set up the UI
 
         // Restore the drawing if available
         if (drawingViewModel.selectedDrawing.value != null) {
@@ -74,52 +79,11 @@ class DrawingScreen : Fragment() {
         return binding.root
     }
 
-    private fun topBar() {
-        // Go back button
-        binding.goBackButton.setOnClickListener {
-            Log.e("Drawing", "goBackButton Clicked")
-            findNavController().navigate(R.id.select_drawing_action)
-        }
-
-        // Save button
-        binding.saveButton.setOnClickListener {
-            binding.drawingTitle.clearFocus()
-
-            Log.e("Drawing", "saveButton Clicked")
-            val currentBitmap = binding.canvasView.saveState()
-            currentBitmap?.let {
-                val pictureTitle = binding.drawingTitle.text.toString()
-                lifecycleScope.launch {
-                    if (!drawingViewModel.isSavetoSaveDrawing(pictureTitle, it)) {
-                        Log.e(
-                            "DrawingRepository",
-                            "A drawing with the same name already exists. $pictureTitle"
-                        )
-                        Dialogs.showSaveWarningDialog(
-                            this@DrawingScreen,
-                            drawingViewModel,
-                            pictureTitle,
-                            it,
-                            "A drawing with the same name already exists. Do you want to overwrite it?"
-                        )
-                    } else {
-                        drawingViewModel.saveDrawing(pictureTitle, it)
-                    }
-                }
-            }
-        }
-
-        // Drag button
-        binding.dragButton.setOnClickListener {
-            isDragEnabled = !isDragEnabled  // Toggle the state
-            if (isDragEnabled) {
-                binding.dragButton.text = "Drag Enabled"
-                drawingViewModel.toggleDrag(true)
-            } else {
-                binding.dragButton.text = "Drag Disabled"
-                drawingViewModel.toggleDrag(false)
-            }
-        }
+    /**
+     * Get the current bitmap on the canvas
+     */
+    fun getCurrentBitmapOnCanvas(): Bitmap? {
+        return binding.canvasView.saveState()
     }
 
     /**
@@ -150,6 +114,61 @@ class DrawingScreen : Fragment() {
     }
 
     /**
+     * Set up the UI
+     */
+    private fun UISetup() {
+        // Set up the top bar buttons
+        topBar()
+        // Set up the SeekBar to change the pen size
+        seekBar()
+        // Set up the shape bar buttons
+        shapeBar()
+        // Set up the bitmap bar buttons
+        bitmapBar()
+
+        binding.customizeColorButton.setOnClickListener() {
+            Dialogs.showCustomColorDialog(this, drawingViewModel)
+        }
+    }
+
+    /**
+     * Set up the top bar buttons
+     */
+    private fun topBar() {
+        // Go back button
+        binding.goBackButton.setOnClickListener {
+            Log.e("Drawing", "goBackButton Clicked")
+            findNavController().navigate(R.id.select_drawing_action)
+        }
+
+        // Save button
+        binding.saveButton.setOnClickListener {
+            binding.drawingTitle.clearFocus()
+
+            Log.e("Drawing", "saveButton Clicked")
+            val currentBitmap = getCurrentBitmapOnCanvas()
+            currentBitmap?.let {
+                val pictureTitle = binding.drawingTitle.text.toString()
+                lifecycleScope.launch {
+                    drawingViewModel.saveDrawing(pictureTitle, it, requireContext())
+                }
+            }
+        }
+
+        // Drag button
+        binding.dragButton.setOnClickListener {
+            isDragEnabled = !isDragEnabled  // Toggle the state
+            if (isDragEnabled) {
+                binding.dragButton.text = "Drag Enabled"
+                drawingViewModel.toggleDrag(true)
+            } else {
+                binding.dragButton.text = "Drag Disabled"
+                drawingViewModel.toggleDrag(false)
+            }
+        }
+    }
+
+    /**
      * Set up the SeekBar to change the pen size
      */
     private fun seekBar() {
@@ -170,6 +189,9 @@ class DrawingScreen : Fragment() {
         })
     }
 
+    /**
+     * Set up the shape bar buttons
+     */
     private fun shapeBar() {
         binding.StrokeButton.setOnClickListener() {
             drawingViewModel.setPenShape("stroke")
@@ -179,6 +201,60 @@ class DrawingScreen : Fragment() {
         }
         binding.TriangleButton.setOnClickListener() {
             drawingViewModel.setPenShape("triangle")
+        }
+    }
+
+    /**
+     * Set up the bitmap bar buttons
+     */
+    private fun bitmapBar() {
+
+        // Invert color button
+        binding.InvertColorButton.setOnClickListener {
+            val currentBitmap = getCurrentBitmapOnCanvas()
+
+            val requiredBufferSize =
+                currentBitmap!!.width * currentBitmap.height * 4 // for ARGB_8888 bitmap
+            val buffer = ByteBuffer.allocateDirect(requiredBufferSize)
+
+            currentBitmap.copyPixelsToBuffer(buffer)
+            InvertColors_Bitmap(buffer, currentBitmap.width, currentBitmap.height)
+            buffer.rewind() // Reset the buffer's position to the start
+
+            // Create a new bitmap and copy the inverted colors into it
+            val invertedBitmap = Bitmap.createBitmap(
+                currentBitmap.width,
+                currentBitmap.height,
+                Bitmap.Config.ARGB_8888
+            )
+            invertedBitmap.copyPixelsFromBuffer(buffer)
+
+            // Update the CanvasView with the new inverted bitmap
+            binding.canvasView.restoreState(invertedBitmap)
+        }
+
+        // Add noise button
+        binding.AddNoiseButton.setOnClickListener {
+            val currentBitmap = getCurrentBitmapOnCanvas()
+
+            val requiredBufferSize =
+                currentBitmap!!.width * currentBitmap.height * 4 // for ARGB_8888 bitmap
+            val buffer = ByteBuffer.allocateDirect(requiredBufferSize)
+
+            currentBitmap.copyPixelsToBuffer(buffer)
+            AddNoise_Bitmap(buffer, currentBitmap.width, currentBitmap.height)
+            buffer.rewind() // Reset the buffer's position to the start
+
+            // Create a new bitmap and copy the noisy colors into it
+            val noisyBitmap = Bitmap.createBitmap(
+                currentBitmap.width,
+                currentBitmap.height,
+                Bitmap.Config.ARGB_8888
+            )
+            noisyBitmap.copyPixelsFromBuffer(buffer)
+
+            // Update the CanvasView with the new noisy bitmap
+            binding.canvasView.restoreState(noisyBitmap)
         }
     }
 
@@ -195,16 +271,12 @@ class DrawingScreen : Fragment() {
             ViewTreeObserver.OnGlobalLayoutListener {
             override fun onGlobalLayout() {
                 // Remove the listener to ensure it's only called once
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
-                    gridLayout.viewTreeObserver.removeGlobalOnLayoutListener(this)
-                } else {
-                    gridLayout.viewTreeObserver.removeOnGlobalLayoutListener(this)
-                }
+                gridLayout.viewTreeObserver.removeOnGlobalLayoutListener(this)
 
                 colors.forEach { color ->
                     val colorSwatch = View(context).apply {
                         layoutParams = GridLayout.LayoutParams().apply {
-                            var min = min(gridLayout.width, gridLayout.height)
+                            val min = min(gridLayout.width, gridLayout.height)
                             width = min
                             height = min
                             setMargins(10, 10, 10, 10)
@@ -222,12 +294,4 @@ class DrawingScreen : Fragment() {
             }
         })
     }
-
-    /**
-     * Save the current state of the canvas
-     */
-    fun saveCanvasState(): Bitmap? {
-        return binding.canvasView.saveState()
-    }
-
 }

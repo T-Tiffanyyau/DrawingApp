@@ -9,12 +9,11 @@
         android:id="@+id/splashScreenFragment"
         android:name="com.example.drawingactivity.SplashScreen"
         android:label="fragment_splash_screen"
-        tools:layout="@layout/fragment_splash_screen">
+        tools:layout="@layout/fragment_splash_screen"
+        app:exitAnim="@android:anim/slide_out_right">
         <action
             android:id="@+id/start_up_action"
-            app:destination="@id/mainScreenFragment"
-            app:enterAnim="@android:anim/fade_in"
-            app:exitAnim="@android:anim/fade_out" />
+            app:destination="@id/loginPage" />
     </fragment>
 
     <fragment
@@ -27,6 +26,9 @@
             app:destination="@id/drawingScreenFragment"
             app:enterAnim="@android:anim/slide_in_left"
             app:exitAnim="@android:anim/slide_out_right" />
+        <action
+            android:id="@+id/action_main_to_login"
+            app:destination="@id/loginPage" />
     </fragment>
 
     <fragment
@@ -37,8 +39,18 @@
         <action
             android:id="@+id/select_drawing_action"
             app:destination="@id/mainScreenFragment"
-            app:enterAnim="@android:anim/slide_out_right"
-            app:exitAnim="@android:anim/slide_in_left" />
+            app:enterAnim="@android:anim/slide_in_left"
+            app:exitAnim="@android:anim/slide_out_right" />
+    </fragment>
+    <fragment
+        android:id="@+id/loginPage"
+        android:name="com.example.drawingactivity.LoginPage"
+        android:label="LoginPage" >
+        <action
+            android:id="@+id/action_login_to_main"
+            app:destination="@id/mainScreenFragment"
+            app:enterAnim="@android:anim/slide_in_left"
+            app:exitAnim="@android:anim/slide_out_right"/>
     </fragment>
 
 </navigation>

@@ -1,97 +1,77 @@
-package com.example.drawingactivity
+package com.example.drawingactivity.drawingdata
 
 import android.graphics.Bitmap
-import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
-import androidx.test.ext.junit.runners.AndroidJUnit4
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.runBlockingTest
-import org.junit.After
-import org.junit.Assert.assertEquals
+import kotlinx.coroutines.test.TestCoroutineScope
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import android.content.Context
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.take
-import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.runBlocking
+import com.google.android.gms.tasks.Tasks
 
-
-@ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
-class DrawingDaoTest {
-
-    private lateinit var database: DrawingDatabase
-    private lateinit var dao: DrawingDao
+class DrawingRepositoryTest {
+    private val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
+    private val appContext = ApplicationProvider.getApplicationContext<Context>()
+    private lateinit var drawingRepository: DrawingRepository
+    private val testScope = TestCoroutineScope()
 
     @Before
-    fun setup() {
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        database = Room.inMemoryDatabaseBuilder(context, DrawingDatabase::class.java).build()
-        dao = database.DrawingDao()
+    fun setUp() {
+        drawingRepository = DrawingRepository(testScope)
     }
 
-    @After
-    fun teardown() {
-        database.close()
+    @Test
+    fun testBitmapToString() {
+        val result = drawingRepository.bitmapToString(bitmap)
+        Assert.assertNotNull(result)
+    }
+
+    @Test
+    fun testStringToBitmap() {
+        val bitmapString = drawingRepository.bitmapToString(bitmap)
+        val result = drawingRepository.stringToBitmap(bitmapString)
+        Assert.assertNotNull(result)
     }
 
 
     @Test
-    fun insertAndRetrieveDrawingTest() {
-        runBlocking {
-            // Given a DrawingData
-            val drawing = DrawingData("Test Drawing", Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888))
+    fun testSaveDrawing() {
+        val title = "Test Drawing"
+        val drawingData = DrawingData(title, bitmap)
 
-            // When inserting a drawing into the Dao
-            dao.addFunfactData(drawing)
+        // Save the drawing
+        val saveTask = drawingRepository.saveDrawing(drawingData, appContext)
+        Tasks.await(saveTask)
 
-            // Then the drawing can be retrieved from the Dao
-            val retrievedDrawing = dao.allFunFacts().first().find { it.title == drawing.title }
+        // Try to get the drawing
+        val getTask = drawingRepository.getDrawing()
+        val result = Tasks.await(getTask).find { it.title == title }
 
-            assertEquals(drawing.title, retrievedDrawing?.title)
-        }
-    }
-
-
-    @Test
-    fun countDrawingsByNameTest() {
-        runBlocking {
-            // Given a DrawingData
-            val drawing = DrawingData("Test Drawing", Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888))
-
-            // When inserting a drawing into the Dao
-            dao.addFunfactData(drawing)
-
-            // Then the count of drawings with the same name should be 1
-            val count = dao.countDrawingsByName(drawing.title)
-
-            assertEquals(1, count)
-        }
+        // Verify that the drawing was saved correctly
+        Assert.assertNotNull(result)
     }
 
     @Test
-    fun deleteDrawingByTitleTest() {
-        runBlocking {
-            // Given a DrawingData
-            val drawing = DrawingData("Test Drawing", Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888))
-    
-            // When inserting a drawing into the Dao
-            dao.addFunfactData(drawing)
+    fun testDeleteDrawing() {
+        val title = "Test Drawing"
+        val drawingData = DrawingData(title, bitmap)
 
-            // And then deleting the drawing by title
-            dao.deleteDrawingByTitle(drawing.title)
+        // Save the drawing
+        val saveTask = drawingRepository.saveDrawing(drawingData, appContext)
+        Tasks.await(saveTask)
 
-            // Then the drawing should not be retrievable from the Dao
-            val retrievedDrawing = dao.allFunFacts().first().find { it.title == drawing.title }
+        // Delete the drawing
+        val deleteTask = drawingRepository.deleteDrawing(drawingData, appContext)
+        Tasks.await(deleteTask)
 
-            assertEquals(null, retrievedDrawing)
-        }
-}
+        // Try to get the drawing
+        val getTask = drawingRepository.getDrawing()
+        val result = Tasks.await(getTask).find { it.title == title }
 
-
-
+        // Verify that the drawing no longer exists
+        Assert.assertNull(result)
+    }
 }

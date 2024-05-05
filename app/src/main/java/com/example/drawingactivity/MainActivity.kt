@@ -8,6 +8,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.example.drawingactivity.databinding.ActivityMainBinding
+import com.example.drawingactivity.drawingdata.DrawingViewModel
+import com.example.drawingactivity.drawingdata.DrawingViewModelFactory
 
 internal fun Context.findActivity(): ComponentActivity {
     var context = this
@@ -21,7 +23,8 @@ internal fun Context.findActivity(): ComponentActivity {
 class MainActivity : AppCompatActivity() {
     private lateinit var fragDrawingScreen: DrawingScreen
     val drawingViewModel: DrawingViewModel by viewModels{
-        DrawingViewModelFactory((application as DrawingApplication).DrawingtRepository)}
+        DrawingViewModelFactory((application as DrawingApplication).DrawingtRepository)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,7 +48,7 @@ class MainActivity : AppCompatActivity() {
         // Check if fragDrawingScreen is initialized and is currently added to the activity
         if (this::fragDrawingScreen.isInitialized && fragDrawingScreen.isAdded) {
             // Save the state of the CanvasView
-            val currentBitmap = fragDrawingScreen.saveCanvasState()
+            val currentBitmap = fragDrawingScreen.getCurrentBitmapOnCanvas()
             outState.putParcelable("canvasState", currentBitmap)
         }
     }

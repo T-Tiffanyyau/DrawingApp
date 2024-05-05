@@ -1,0 +1,3 @@
+C:/DrawingApp/app/.cxx/Debug/481h3k06/x86_64/CMakeFiles/drawingactivity.dir
+C:/DrawingApp/app/.cxx/Debug/481h3k06/x86_64/CMakeFiles/edit_cache.dir
+C:/DrawingApp/app/.cxx/Debug/481h3k06/x86_64/CMakeFiles/rebuild_cache.dir

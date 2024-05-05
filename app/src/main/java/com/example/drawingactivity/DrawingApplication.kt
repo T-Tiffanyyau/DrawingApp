@@ -1,20 +1,18 @@
 package com.example.drawingactivity
 
 import android.app.Application
-import androidx.room.Room
+import com.example.drawingactivity.drawingdata.DrawingRepository
+import com.google.firebase.FirebaseApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 
-class DrawingApplication : Application(){
+class DrawingApplication : Application() {
     val scope = CoroutineScope(SupervisorJob())
 
-    val db by lazy {
-        Room.databaseBuilder(
-            applicationContext,
-            DrawingDatabase::class.java,
-            "drawing_database"
-        ).build()
-    }
+    val DrawingtRepository by lazy { DrawingRepository(scope) }
 
-    val DrawingtRepository by lazy { DrawingRepository(scope, db.DrawingDao()) }
+    override fun onCreate() {
+        super.onCreate()
+        FirebaseApp.initializeApp(this)
+    }
 }

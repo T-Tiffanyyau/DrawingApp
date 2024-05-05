@@ -27,10 +27,10 @@ class MainScreenTest {
     }
 
     @Test
-    fun onCreateView_setsOnClickListener() {
-        launchFragmentInContainer<MainScreen>()
-        onView(withId(R.id.go_drawing_screen)).check(matches(isDisplayed()))
-    }
+fun onCreateView_setsOnClickListener() {
+    launchFragmentInContainer<MainScreen>()
+    onView(withId(R.id.go_drawing_screen)).check(matches(isDisplayed()))
+}
 
     @Test
     fun goDrawingScreenButton_isClickable() {

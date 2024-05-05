@@ -4,7 +4,7 @@
 The Drawing Activity App is an engaging and intuitive Android application designed for drawing enthusiasts. Built using Android Studio with Kotlin, it offers a user-friendly environment for creative expression through digital sketching.
 
 ### Introduction Video
-Got to https://github.com/T-Tiffanyyau/DrawingApp/blob/main/DrawingAppDemo.mp4, press `View raw`.
+Go to https://github.com/T-Tiffanyyau/DrawingApp/blob/main/DrawingAppDemo.mp4, press `View raw`.
 
 ## Installation
 - Clone or download the repository.

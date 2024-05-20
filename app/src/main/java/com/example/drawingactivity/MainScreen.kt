@@ -38,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.createBitmap
@@ -192,8 +193,9 @@ class MainScreen : Fragment() {
                 )
                 Text(
                     text = drawingData.title,
+                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
-                        .wrapContentWidth()
+                        .weight(1f)
                         .wrapContentHeight()
                         .padding(4.dp)
                 )
@@ -205,7 +207,7 @@ class MainScreen : Fragment() {
                         onClick = {
                             showDialog = true
                         },
-                        modifier = Modifier.padding(4.dp)
+                        modifier = Modifier.padding(1.dp)
                     ) {
                         Text("Share")
                     }
@@ -217,7 +219,7 @@ class MainScreen : Fragment() {
                             )
                             drawingViewModel.fetchData()
                         },
-                        modifier = Modifier.padding(4.dp)
+                        modifier = Modifier.padding(1.dp)
                     ) {
                         Text("Delete")
                     }
